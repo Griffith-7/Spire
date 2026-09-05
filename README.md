@@ -1,4 +1,4 @@
-# spire-rd
+# spire
 
 Information-theoretic rate-distortion bounds and optimal spike codes for spiking neural networks.
 
