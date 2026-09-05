@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install tooling
+        run: python -m pip install ruff mypy
+      - name: Lint
+        run: ruff check .
+      - name: Type check
+        run: mypy spire_rd
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install package and test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+      - name: Run tests
+        run: python -m pytest
+      - name: Build wheel
+        run: python -m pip install build && python -m build --wheel
+
+  torch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install package with torch extras
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev,torch]"
+      - name: Run torch tests
+        run: python -m pytest tests/test_torch.py
